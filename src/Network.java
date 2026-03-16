@@ -4,8 +4,7 @@ import java.util.List;
 public class Network {
 
     int hiddenlayers = Config.hiddenlayers;
-    int start = 0;
-    int curLabel;
+    float curLabel;
 
     List<Layer> layers = new ArrayList<>();
     List<Layer> hlayers = new ArrayList<>();
@@ -18,11 +17,14 @@ public class Network {
 
     public void assignL1(List<Data> d, int index) {
         Layer L1 = new Layer();
-        L1.depth = Config.inputs;
 
         Data curData = d.get(index);
 
-        for (int i = 0; i < Config.inputs; i++) {
+        // Use actual input array size instead of Config.inputs
+        int inputSize = curData.inputs.length;
+        L1.depth = inputSize;
+
+        for (int i = 0; i < inputSize; i++) {
             NeuronIn neuron = new NeuronIn(curData.inputs[i] / 255.0, 0, i);
             L1.neurons.add(neuron);
         }
@@ -42,6 +44,7 @@ public class Network {
 
             for (int j = 0; j < LH.depth; j++) {
                 double[] weights = new double[prev.depth];
+
                 for (int k = 0; k < prev.depth; k++) {
                     weights[k] = (Math.random() - 0.5) * 2;
                 }
@@ -53,6 +56,7 @@ public class Network {
             layers.add(LH);
             hlayers.add(LH);
         }
+
         return hlayers;
     }
 
@@ -64,6 +68,7 @@ public class Network {
 
         for (int i = 0; i < Config.outputs; i++) {
             double[] weights = new double[prev.depth];
+
             for (int j = 0; j < prev.depth; j++) {
                 weights[j] = (Math.random() - 0.5) * 2;
             }
@@ -76,13 +81,14 @@ public class Network {
         return LO;
     }
 
-
     private double weightedSum(int prevLayerIndex, double[] weights, double bias) {
         Layer prev = layers.get(prevLayerIndex);
         double sum = bias;
+
         for (int i = 0; i < prev.depth; i++) {
             sum += prev.neurons.get(i).value * weights[i];
         }
+
         return sum;
     }
 
@@ -103,7 +109,9 @@ public class Network {
                 forward(n);
             }
         }
+
         Layer out = layers.getLast();
+
         for (int i = 0; i < out.depth; i++) {
             ((NeuronOut) out.neurons.get(i)).y = (i == curLabel) ? 1 : 0;
         }
